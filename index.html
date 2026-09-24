@@ -95,6 +95,7 @@ footer{max-width:760px;margin:0 auto;padding:0 1.25rem 3rem}
 <a class="tile" href="#schema" role="menuitem"><span class="mono">Gp</span><span>Schema</span></a>
 <a class="tile" href="#figure" role="menuitem"><span class="mono">Fg</span><span>Figure</span></a>
 <a class="tile" href="#epilogue" role="menuitem"><span class="mono">Ep</span><span>Epilogue</span></a>
+<a class="tile" href="#addendum" role="menuitem"><span class="mono">Ad</span><span>Addendum</span></a>
 <a class="tile" href="#references" role="menuitem"><span class="mono">Rf</span><span>References</span></a>
     </nav>
   </div>
@@ -678,6 +679,32 @@ That feels much closer to the pentad you’ve been trying to get the index.mds t
 </tbody>
 </table>
 <p>The short version for a positioning line: Muse is the personal agent, and Ukubona is the layer that makes any agent accountable to a clinician and to the patient's own context.</p>
+</section>
+
+<section id="addendum">
+<h2 class="sec">Addendum</h2>
+<p>What do you think of the IV edit?</p>
+<hr />
+<p>I like it. The Coen Brothers are an unusually apt example for IV because their plots run on collision more than on any one character's intent.</p>
+<ul>
+<li><strong>Each agent has a partial model.</strong> In <em>Blood Simple</em>, <em>Fargo</em> and <em>No Country for Old Men</em>, everyone acts on a wrong or incomplete reading of everyone else, and the outcome comes from those readings colliding. That's your IV: differently situated interpreters, no single narrator, and the result belongs to none of them. It's also the "spasm" problem, where the patient's idiom, the clinician's cache, the guideline and the LLM each read the same event differently.</li>
+<li><strong>Errors compound into collisions.</strong> In <em>Blood Simple</em>, one misreading feeds the next, so III (errative) turns into IV (interactive). That matches your structure, where classification errors escalate into collisions instead of staying in a log.</li>
+<li><strong>The relation types show up.</strong> <em>Fargo</em> alone has transactional (the ransom), adversarial, and regulatory (Marge), which matches your list of adversarial, transactional, cooperative, regulatory and symbiotic.</li>
+<li><strong>They keep the collision unresolved.</strong> <em>No Country</em> ends without a tidy resolution, which supports the point that the collision should be stored as a collision instead of being collapsed into one answer.</li>
+</ul>
+<p>There are two places it's less clean:</p>
+<ol>
+<li><strong>"Art" is much broader than the Coen Brothers.</strong> "Art, Coen Brothers" reads as a category plus one instance. That's fine as shorthand, but the sharper claim is narrower: art that stages misaligned interpreters, not art generally. Note too that it has no counterpart in the other rows yet.</li>
+<li><strong>The Coens tend to show collision as farce or fate.</strong> In your system, collisions are supposed to lead to V, a correction that changes what's asked next. Their films often end with nothing learned, which makes them good illustrations of IV but a poor model of the V that follows it.</li>
+</ol>
+<p>If you want one clinical pairing for the table, I'd cite the specific films, <em>Blood Simple</em> or <em>Fargo</em>, instead of the brothers as a group, since the mechanism sits in those plots.</p>
+<hr />
+<p>I like this response of yours, because Coen brothers are the best thing that cinema has ever handed me. So lets drop your reponse into an update *.html; but you've neglected the adverarial like insurance companies. I just learned from my mom that some ugandan dentist adds an additional UGX 70,000 for clients who show up outside the recommended 6monthly visits for hygiene. happened ot my dad. isn't that adverarial? in facat, that is not even insurance... its just exploiting folks with insurance . and those without are caught up in that mess. seems also unethical</p>
+<hr />
+<p>Yes, that's adversarial, and my list missed it because I only reached for the obvious examples. But I'd separate two claims: the structure is adversarial, and whether it's unethical depends on details we don't know yet.</p>
+<p><strong>Why it's adversarial.</strong> In IV the relation type comes from how the agents' objectives relate, not from the industry. Here the dentist's objective (revenue, a predictable schedule) and the patient's (paying only for care they need) diverge, the dentist sets the price, and the patient can't tell whether the extra fee reflects extra work. Diverging objectives plus asymmetric information is the adversarial signature. Insurance is one instance, and your example shows the pattern doesn't need a payer: it's a provider-patient collision. One collision can also carry several relations at once: the visit is transactional and the surcharge is adversarial.</p>
+<p><strong>Whether it's unethical.</strong> A surcharge for an overdue recall isn't wrong by definition. A long gap can mean more calculus and a longer appointment, and a clinic may price for its time. It tips toward unethical if the fee wasn't disclosed beforehand, is flat regardless of the work done, is applied whatever the patient's individual risk, or works as a penalty that falls hardest on people who can't keep the schedule. From a secondhand account I can't tell which it was, and I can't say how it plays out for insured versus uninsured patients. An itemized bill or the clinic's fee schedule would settle it. Also, as far as I know, guidelines such as NICE's recommend risk-based recall intervals rather than a universal six months, so a fixed six-month rule enforced by price is a cache heuristic being used as a lever.</p>
+<p><strong>What it means for the schema.</strong> In the collision event, record each participant's incentive and whether the terms were disclosed, for example <code>{"agent": "provider", "position": "recall surcharge", "incentive": "revenue", "disclosed": false}</code>. Labels produced under adversarial conditions (billing-driven documentation, defensive notes) should carry different weight from cooperative ones, and the system can only discount them if the incentive is on the record.</p>
 </section>
 
 <section id="references">
