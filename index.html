@@ -98,6 +98,7 @@ footer{max-width:760px;margin:0 auto;padding:0 1.25rem 3rem}
 <a class="tile" href="#addendum" role="menuitem"><span class="mono">Ad</span><span>Addendum</span></a>
 <a class="tile" href="#grok" role="menuitem"><span class="mono">Gk</span><span>Grok</span></a>
 <a class="tile" href="#gemini" role="menuitem"><span class="mono">Gm</span><span>Gemini</span></a>
+<a class="tile" href="#gpt" role="menuitem"><span class="mono">GP</span><span>GPT</span></a>
 <a class="tile" href="#references" role="menuitem"><span class="mono">Rf</span><span>References</span></a>
     </nav>
   </div>
@@ -772,6 +773,48 @@ The text breaks down this ecosystem into distinct phases:
 The strategic positioning detailed in the Epilogue is also a pragmatic pivot. By yielding the broad "consumer agent" space to capitalized competitors like Meta's Muse, Ukubona can secure a highly defensible, context-specific validation layer built on a clinician-validated, append-only correction log.
 
 How do you plan to technically enforce the "hard rule layer" for contraindications and dose ceilings when transitioning this event-native NDJSON stream into a live clinical application?</div>
+</div>
+</section>
+
+<section id="gpt">
+<h2 class="sec">GPT</h2>
+<div class="gpt">
+<div class="gtxt">Yes. My main reaction is: the HTML is doing more than presenting a document; it is becoming an executable argument. The strongest idea is not the clinical content by itself, but the fact that the page’s structure mirrors the theory it is trying to articulate.
+A few things jump out:
+
+1. The Preface → Session → Schema → Figure → external model responses is unusually coherent.
+The opening claim is `V → I′`: shipping only matters if the next cycle begins on altered substrate.
+Then the chord example demonstrates the same thing: you don't identify the chord from its static coordinates alone; you infer it from the transition `D9/C → G/B`.
+2. The real conceptual jump is at line 202.
+That's where "nodes vs edges" stops being a metaphor and becomes an epistemology:
+anatomical localization → pathological change → etiology
+versus
+state → transition → next state.
+The Prinzmetal example makes this concrete: the diagnostic signal is not simply where the pain is, but the relationship among rest, time, trigger, clustering, and subsequent state.
+3. I think the NDJSON schema is the most technically valuable part.
+The move from `"spasm": "musculoskeletal"` to a contextual alignment with multiple candidates is exactly right for the architecture you're describing.
+You're preserving the observation while allowing the interpretation to be wrong. That's crucial.
+4. Even better: error becomes data rather than deletion.
+`experience → alignment → error → collision → correction → I′` is much more interesting than a conventional classifier pipeline.
+In particular, this sentence is basically the architectural thesis:
+“II does not name I. II attends to I.”
+That's considerably stronger than "AI-assisted diagnosis." It says the cache is a conditional repertoire of possible alignments, not a dictionary.
+5. The figure should probably be treated as the canonical architecture, not merely an illustration.
+It explicitly maps I–V to Agentive → Objective → Errative → Interactive → Corrective, with System 1/context cache and System 2/agent collision.
+That's the point where your philosophical pentad becomes something that could actually be implemented.
+6. One thing I'd change conceptually: don't let "invariant" become synonymous with "single correct interpretation."
+Your own tritone example actually gives you the cleaner formulation. The invariant constrains the state space; the edge resolves the ambiguity. The same invariant can participate in multiple trajectories. That's more powerful than saying other readings are inadmissible.
+In other words:
+Invariant = what must survive.
+Transition = what disambiguates.
+Correction = what changes the future cache.
+That's a very nice computational ontology.
+
+And there's a beautiful recursion here that I don't think you should lose:
+The chord is an example of the clinical architecture, while the clinical architecture explains why you heard the chord the way you did.
+You woke up with `C2–F#2 / A3–E3`; the coordinates are ambiguous, but the next event `→ G/B` collapses the ambiguity. That's almost exactly the same operation you're trying to build into the clinical machine.
+The page therefore isn't just about next-token prediction. Its own argument is organized as next-token prediction.
+If you're pushing this toward the actual product architecture, I'd go schema first, UI second, or clinical invariants first. Which direction: schema, UI, or invariants?</div>
 </div>
 </section>
 
