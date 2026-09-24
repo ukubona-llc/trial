@@ -47,7 +47,7 @@ pre{overflow-x:auto;background:var(--soft);padding:1rem;border-radius:8px;font-s
 code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.92em}
 a{color:var(--link)}
 figure{margin:2rem 0;overflow-x:auto;scroll-margin-top:64px}
-figure .card{background:#fcfcfb;border:1px solid var(--line);border-radius:12px;padding:.5rem;min-width:560px}
+figure .card{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:.5rem;min-width:560px}
 figure svg{display:block;width:100%;height:auto}
 .refs{list-style:none;counter-reset:r;padding:0;margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px}
 .refs li{counter-increment:r;display:grid;grid-template-columns:2rem 1fr;column-gap:.5rem;padding:.7rem 0;border-bottom:1px solid var(--line);align-items:baseline}
@@ -61,6 +61,20 @@ figure svg{display:block;width:100%;height:auto}
 .gtxt{white-space:pre-wrap}
 .gpt pre.gjson{margin:1rem 0}
 .attr{margin:1rem 0 0;color:var(--muted)}
+:root[data-theme="dark"] figure svg rect[style*="fill:rgb(241, 239, 232)"]{fill:#444441!important;stroke:#b4b2a9!important}
+:root[data-theme="dark"] figure svg rect[style*="fill:rgb(238, 237, 254)"]{fill:#3c3489!important;stroke:#afa9ec!important}
+:root[data-theme="dark"] figure svg rect[style*="fill:rgb(225, 245, 238)"]{fill:#085041!important;stroke:#5dcaa5!important}
+:root[data-theme="dark"] figure svg rect[style*="fill:rgb(252, 252, 251)"]{fill:#1c1a20!important;stroke:rgba(255,255,255,.28)!important}
+:root[data-theme="dark"] figure svg text{stroke:none!important}
+:root[data-theme="dark"] figure svg text[style*="fill:rgb(68, 68, 65)"]{fill:#f1efe8!important}
+:root[data-theme="dark"] figure svg text[style*="fill:rgb(95, 94, 90)"]{fill:#b4b2a9!important}
+:root[data-theme="dark"] figure svg text[style*="fill:rgb(60, 52, 137)"]{fill:#cecbf6!important}
+:root[data-theme="dark"] figure svg text[style*="fill:rgb(83, 74, 183)"]{fill:#afa9ec!important}
+:root[data-theme="dark"] figure svg text[style*="fill:rgb(8, 80, 65)"]{fill:#9fe1cb!important}
+:root[data-theme="dark"] figure svg text[style*="fill:rgb(15, 110, 86)"]{fill:#5dcaa5!important}
+:root[data-theme="dark"] figure svg text[style*="fill:rgb(11, 11, 11)"]{fill:#ece9e2!important}
+:root[data-theme="dark"] figure svg text[style*="fill:rgb(82, 81, 78)"]{fill:#a19f97!important}
+:root[data-theme="dark"] figure svg line{stroke:#9c9a92!important}
 footer{max-width:760px;margin:0 auto;padding:0 1.25rem 3rem}
 </style>
 </head>
@@ -561,13 +575,13 @@ That feels much closer to the pentad you’ve been trying to get the index.mds t
 </tr>
 <tr>
 <td>IV. Interactive (System 2)</td>
-<td>Multi-agent collision</td>
+<td>Multi-agent collision, Art, Coen Brothers</td>
 <td>Patient, clinician, guideline and LLM interpretations collide, and the relation may be adversarial, transactional, cooperative, regulatory or symbiotic. Store the collision and its resolution, not the LLM's answer.</td>
 <td><code>collision</code>, <code>resolution</code></td>
 </tr>
 <tr>
 <td>V. Corrective</td>
-<td>Realignment of objectives</td>
+<td>Realignment of objectives, Life</td>
 <td>Change what the system attends to, not just a label, in small versioned diffs with clinician sign-off.</td>
 <td><code>correction</code></td>
 </tr>
