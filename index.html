@@ -1,26 +1,108 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Chord, Cache, and Clinical Loop</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 6 L75.86 85.6 L8.15 36.4 L91.85 36.4 L24.14 85.6 Z' fill='none' stroke='%23534ab7' stroke-width='5' stroke-linejoin='round'/%3E%3Cg fill='%23534ab7'%3E%3Ccircle cx='50' cy='6' r='7'/%3E%3Ccircle cx='91.85' cy='36.4' r='7'/%3E%3Ccircle cx='75.86' cy='85.6' r='7'/%3E%3Ccircle cx='24.14' cy='85.6' r='7'/%3E%3Ccircle cx='8.15' cy='36.4' r='7'/%3E%3C/g%3E%3C/svg%3E">
+<script>
+(function(){var t=null;try{t=localStorage.getItem('theme')}catch(e){}
+if(!t){t=(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light'}
+document.documentElement.setAttribute('data-theme',t)})();
+</script>
 <style>
-  :root { color-scheme: light; }
-  body { margin: 0; background: #fcfcfb; color: #0b0b0b; font: 17px/1.7 Georgia, "Times New Roman", serif; }
-  main { max-width: 760px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
-  hr { border: 0; border-top: 1px solid rgba(11,11,11,.2); margin: 2rem 0; }
-  table { border-collapse: collapse; display: block; overflow-x: auto; margin: 1rem 0; font-size: 15px; }
-  th, td { border: 1px solid rgba(11,11,11,.2); padding: .4rem .6rem; text-align: left; vertical-align: top; }
-  th { background: #f1efe8; }
-  pre { overflow-x: auto; background: #f1efe8; padding: 1rem; border-radius: 8px; font-size: 14px; line-height: 1.45; }
-  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .92em; }
-  figure { margin: 2rem 0; overflow-x: auto; }
-  figure svg { display: block; width: 100%; height: auto; min-width: 560px; }
-  a { color: #534ab7; }
+:root{--bg:#fcfcfb;--fg:#0b0b0b;--muted:#5f5e5a;--line:rgba(11,11,11,.16);--soft:#f1efe8;--accent:#534ab7;--link:#534ab7;--pop:#ffffff;--shadow:0 8px 28px rgba(0,0,0,.12)}
+:root[data-theme="dark"]{--bg:#141316;--fg:#ece9e2;--muted:#a19f97;--line:rgba(255,255,255,.16);--soft:#211f25;--accent:#afa9ec;--link:#afa9ec;--pop:#1c1a20;--shadow:0 8px 28px rgba(0,0,0,.5);color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.7 Georgia,"Times New Roman",serif;transition:background .2s,color .2s}
+header{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:.6rem 1.25rem;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+.brand{display:flex;align-items:center;gap:.6rem;color:var(--accent);text-decoration:none}
+.brand span{color:var(--fg);font-size:15px;font-weight:500;letter-spacing:.02em}
+.logo{display:block;animation:spin 24s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.logo{animation:none}html{scroll-behavior:auto}}
+.tools{display:flex;align-items:center;gap:.4rem;position:relative}
+.ibtn{width:38px;height:38px;display:grid;place-items:center;border:1px solid transparent;background:transparent;color:var(--fg);border-radius:8px;cursor:pointer}
+.ibtn:hover,.ibtn[aria-expanded="true"]{background:var(--soft);border-color:var(--line)}
+.ibtn:focus-visible,.tile:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.waffle{display:grid;grid-template-columns:repeat(3,4px);gap:3px}
+.waffle i{width:4px;height:4px;border-radius:50%;background:currentColor;display:block}
+.pop{position:absolute;right:0;top:calc(100% + 8px);width:264px;padding:.75rem;background:var(--pop);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);display:none;grid-template-columns:repeat(3,1fr);gap:.4rem}
+.pop.open{display:grid}
+.tile{display:flex;flex-direction:column;align-items:center;gap:.35rem;padding:.6rem .2rem;border-radius:8px;color:var(--fg);text-decoration:none;font-size:12.5px}
+.tile:hover{background:var(--soft)}
+.mono{width:36px;height:36px;display:grid;place-items:center;border-radius:8px;background:var(--soft);border:1px solid var(--line);color:var(--accent);font:500 13px ui-monospace,Menlo,Consolas,monospace}
+.sun{display:none}
+:root[data-theme="dark"] .sun{display:block}
+:root[data-theme="dark"] .moon{display:none}
+main{max-width:760px;margin:0 auto;padding:1rem 1.25rem 4rem}
+section{padding-top:1.5rem;scroll-margin-top:64px}
+h2.sec{font:500 12px/1 system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:1.5rem 0 1rem;padding-bottom:.6rem;border-bottom:1px solid var(--line)}
+hr{border:0;border-top:1px solid var(--line);margin:2rem 0}
+table{border-collapse:collapse;display:block;overflow-x:auto;margin:1rem 0;font-size:15px}
+th,td{border:1px solid var(--line);padding:.4rem .6rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+pre{overflow-x:auto;background:var(--soft);padding:1rem;border-radius:8px;font-size:14px;line-height:1.45;border:1px solid var(--line)}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.92em}
+a{color:var(--link)}
+figure{margin:2rem 0;overflow-x:auto;scroll-margin-top:64px}
+figure .card{background:#fcfcfb;border:1px solid var(--line);border-radius:12px;padding:.5rem;min-width:560px}
+figure svg{display:block;width:100%;height:auto}
+.refs{list-style:none;counter-reset:r;padding:0;margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px}
+.refs li{counter-increment:r;display:grid;grid-template-columns:2rem 1fr;column-gap:.5rem;padding:.7rem 0;border-bottom:1px solid var(--line);align-items:baseline}
+.refs li::before{content:counter(r);color:var(--muted);font:13px ui-monospace,Menlo,Consolas,monospace;grid-row:1 / span 2}
+.rtitle{font-weight:500;text-decoration:none;grid-column:2}
+.rtitle:hover{text-decoration:underline}
+.rnote{grid-column:2;color:var(--muted);font-size:13px}
+.rurl{grid-column:2;color:var(--muted);font:12.5px ui-monospace,Menlo,Consolas,monospace;word-break:break-all;text-decoration:none}
+.rurl:hover{color:var(--link);text-decoration:underline}
+footer{max-width:760px;margin:0 auto;padding:0 1.25rem 3rem}
 </style>
 </head>
 <body>
+<header>
+  <a class="brand" href="#preface" aria-label="Ukubona, go to top"><svg class="logo" viewBox="0 0 100 100" width="30" height="30" aria-hidden="true"><path d="M50 6 L75.86 85.6 L8.15 36.4 L91.85 36.4 L24.14 85.6 Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/><g fill="currentColor"><circle cx="50" cy="6" r="6"/><circle cx="91.85" cy="36.4" r="6"/><circle cx="75.86" cy="85.6" r="6"/><circle cx="24.14" cy="85.6" r="6"/><circle cx="8.15" cy="36.4" r="6"/></g></svg><span>Ukubona</span></a>
+  <div class="tools">
+    <button class="ibtn" id="waffle" aria-label="Sections" aria-haspopup="true" aria-expanded="false" aria-controls="pop">
+      <span class="waffle" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+    </button>
+    <button class="ibtn" id="theme" aria-label="Toggle light and dark theme">
+      <svg class="moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      <svg class="sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
+    <nav class="pop" id="pop" role="menu" aria-label="Sections">
+<a class="tile" href="#preface" role="menuitem"><span class="mono">Pf</span><span>Preface</span></a>
+<a class="tile" href="#session" role="menuitem"><span class="mono">Se</span><span>Session</span></a>
+<a class="tile" href="#figure" role="menuitem"><span class="mono">Fg</span><span>Figure</span></a>
+<a class="tile" href="#epilogue" role="menuitem"><span class="mono">Ep</span><span>Epilogue</span></a>
+<a class="tile" href="#references" role="menuitem"><span class="mono">Rf</span><span>References</span></a>
+    </nav>
+  </div>
+</header>
 <main>
+<section id="preface">
+<h2 class="sec">Preface</h2>
+<pre class="code"><code>I. Kampala, 26
+II. Baltimore, 19
+III. Virginia, 0.5
+IV. Staten Island, 0.3
+V. Nairobi -&gt; I', 0.2
+</code></pre>
+
+<p>Hamlet’s line lands here, and it carries a warning: he swears his thoughts will be bloody, then spends most of the fourth act still not acting. Resolve isn’t the same as shipping. The shipping is the point.</p>
+
+<p>I’d back the <a href="https://ukb-dt.github.io/nairobi/" target="_blank" rel="noopener">mission</a>, with one sharpening. Trial and error is the engine, but it only compounds if the error changes something. Selection without retention is a random walk. That’s the strongest idea in the second document: the <code>V → I′</code> edge, where the output alters the substrate the next cycle starts from. Two apps shipped to clients can be two rings or the same ring drawn twice, and what separates them is whether the second one started from something the first one taught you.</p>
+
+<p>Prigogine’s dissipative structures fit this. They hold their form only while energy flows through them, so a shipping cadence is the throughput that keeps the structure alive, and stopping is how it dies. The streets have memory too: reputation, scars, who pays late, which feature nobody opened. That’s the substrate in 2026.</p>
+
+<p>In <a href="https://ukubona-llc.github.io/trial/" target="_blank" rel="noopener">practice</a>, each ship should leave a small record of what the client did with it, what surprised you, and what default, schema, or assumption changed as a result. Keep it to a few lines, like a growth ring. Then iteration accumulates instead of churning.</p>
+
+<p>The claim “nothing will ever surpass trial and error” I’d trim slightly. Nothing replaces it, but the FOXP2 lesson applies: no single mechanism does the work alone. Judgment about which trials to run, and the cost of each one, decides how fast you learn per iteration. Cheap, small, reversible ships beat big ones, which is where your never-break-the-original habit pays off.</p>
+</section>
+
+<section id="session">
+<h2 class="sec">Session</h2>
 <p>Left Hand: C2-F#2, Right Hand: A3-E3. What chord is that?</p>
 <hr />
 <p>These four pitches (C, F#, A, E) can be analyzed in a few different ways depending on the harmonic context and whether a bass instrument is playing a root note underneath.</p>
@@ -127,7 +209,7 @@ Because the C-F# tritone is symmetrical and can also function as C-Gb, this exac
 <p>Since your workflow is prompt → LLM → code, I'd write these invariants as executable property tests before any logic exists. For example: shuffling the pain location must not change the vasospasm flag when the timing is fixed, and adding a risk factor must not lower the score. Then the AI writes code to satisfy the tests. The tests are the unambiguous specification you're describing, and they hold up when the model or the implementation changes underneath.</p>
 <p>Event sourcing also gives you your SAPATA line for free: patient state is the sum of timestamped events, so V → I′ is literally the next event appended to the log.</p>
 <hr />
-<figure id="pentad-clinical-cache-loop">
+<figure id="figure"><div class="card">
 <svg width="100%" viewBox="0 0 680 390" role="img" style="" xmlns="http://www.w3.org/2000/svg" xmlns:c2pa="http://c2pa.org/manifest"><metadata><c2pa:manifest>AAAWkGp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAABZqanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46YzJwYTo1NGEyMDQ4NC1jZDRiLTQyMTctOGRkYS03MDEyZmMxMGEwNmMAAAADf2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAALxqdW1iAAAARGp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuaW5ncmVkaWVudC52MwAAAAAYYzJzaHCKiZAoUsRVheo1nMdQuVsAAABwY2JvcqNscmVsYXRpb25zaGlwaHBhcmVudE9maWRjOmZvcm1hdG1pbWFnZS9zdmcreG1samluc3RhbmNlSUR4LHhtcDppaWQ6OTA2OTVjNTQtNjE1MS00ODcwLWI0MjItNzExMjU1MWZjMGU0AAABzmp1bWIAAABBanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5hY3Rpb25zLnYyAAAAABhjMnNov9bnJFHD05OLpybWy9cN5QAAAYVjYm9yoWdhY3Rpb25zgqJmYWN0aW9ua2MycGEub3BlbmVkanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFgg+YazR5fCWL4fHVyKYtgZtJN7Pl+IESnIFs1RvxkDEJakZmFjdGlvbngdY29tLmFudGhyb3BpYy5jbGF1ZGUucHJvdmlkZWRtc29mdHdhcmVBZ2VudKFkbmFtZWZDbGF1ZGVqcGFyYW1ldGVyc6F4H2NvbS5hbnRocm9waWMub3JpZ2luLWNvbmZpZGVuY2VndW5rbm93bmtkZXNjcmlwdGlvbnhmQ2xhdWRlIHByb3ZpZGVkIHRoaXMgZmlsZSBhdCB0aGUgcmVxdWVzdCBvZiBhIHVzZXIgYW5kIG1heSBoYXZlIGNyZWF0ZWQgb3IgbW9kaWZpZWQgdGhlIGZpbGUgY29udGVudHMuAAAAxGp1bWIAAABAanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5oYXNoLmRhdGEAAAAAGGMyc2hV4YayY9JQPdIEw8Y7wq4EAAAAfGNib3KlamV4Y2x1c2lvbnOBomVzdGFydBieZmxlbmd0aBkeGGRuYW1lbmp1bWJmIG1hbmlmZXN0Y2FsZ2ZzaGEyNTZkaGFzaFggQxnPrXZGtVMupC3dwx5SvyaVMemYNiCmRCQaV1xAHi9jcGFkSQAAAAAAAAAAAAAAAmRqdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACNWNib3Kmamluc3RhbmNlSUR4LHhtcDppaWQ6MjllYTQxMDEtNDQ2Yy00M2YwLTlkYTgtNGQ1YmJlYTcyM2YydGNsYWltX2dlbmVyYXRvcl9pbmZvo2RuYW1lc0FudGhyb3BpYyBDbGF1ZGUuYWlndmVyc2lvbmUxLjAuMHdvcmcuY29udGVudGF1dGguYzJwYV9yc2YwLjkwLjBpc2lnbmF0dXJleE1zZWxmI2p1bWJmPS9jMnBhL3VybjpjMnBhOjU0YTIwNDg0LWNkNGItNDIxNy04ZGRhLTcwMTJmYzEwYTA2Yy9jMnBhLnNpZ25hdHVyZXJjcmVhdGVkX2Fzc2VydGlvbnOComN1cmx4KnNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuYWN0aW9ucy52MmRoYXNoWCB4fcIzKsUBsr/gfCxowr4Y1AGRCFcbZ2JmLlO6ZVXHQaJjdXJseClzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmhhc2guZGF0YWRoYXNoWCAtUPTPaMHEoJHjFLY3gZ6s9X0eFsGobTgb3zYDsRiQZ3NnYXRoZXJlZF9hc3NlcnRpb25zgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFgg+YazR5fCWL4fHVyKYtgZtJN7Pl+IESnIFs1RvxkDEJZjYWxnZnNoYTI1NgAAEDhqdW1iAAAAKGp1bWRjMmNzABEAEIAAAKoAOJtxA2MycGEuc2lnbmF0dXJlAAAAEAhjYm9y0oRZAhKiASYYIVkCCjCCAgYwggGNoAMCAQICFEDloAruwjnQvriD+gZCBT1nVRMAMAoGCCqGSM49BAMDMEkxFzAVBgNVBAoTDkFudGhyb3BpYywgUEJDMS4wLAYDVQQDEyVBbnRocm9waWMgQ29udGVudCBDcmVkZW50aWFscyBSb290IENBMB4XDTI2MDgwNzE4NDM1NloXDTI4MDgwNjE5NDM1NlowRDEXMBUGA1UEChMOQW50aHJvcGljLCBQQkMxKTAnBgNVBAMTIEFudGhyb3BpYyBDbGF1ZGUgQ29udGVudCBTaWduaW5nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEmHoKa8tQGAUU1TS9QqU5W0Tp2N3XsvlK7BfQt6YWKwEzd2R3/dzKPEUDdCjlLjp9fT+KFjRVnuZ9v0oXvTe3k6NYMFYwDgYDVR0PAQH/BAQDAgeAMBUGA1UdJQQOMAwGCisGAQQBg+heAgEwDAYDVR0TAQH/BAIwADAfBgNVHSMEGDAWgBTOUeIEgU5kWyP448TPmj6cwddcwjAKBggqhkjOPQQDAwNnADBkAjAxcx0UngF60stVjs5G4T2eiptsBk5mf9oCtfJPAUBl8qs/PEXa8+gk1/X5QJ2DVcYCMHBfXN31YapiSqYvlIWrDVDJKOvXMl+kkz37Wt0PBI8sw486Mq6JeOhT+lRR4b1HCaFjcGFkWQ2eAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA9lhAoypKRhvUC3CiewF9JxM/bswSk1lFAIDrroX0DneekHdNNDi/npWIJaUO+3PMWMwjDQyQcfgifDQHcdaXxRfzwQ==</c2pa:manifest></metadata><title style="fill:rgb(0, 0, 0);stroke:none;color:rgb(11, 11, 11);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:anthropic-sans, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">Pentadic loop for a clinical cache</title><desc style="fill:rgb(0, 0, 0);stroke:none;color:rgb(11, 11, 11);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:anthropic-sans, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">Five stages I to V from raw experience to corrective realignment, returning to I prime, with a hard rule layer beneath.</desc><defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
 <g style="fill:rgb(0, 0, 0);stroke:none;color:rgb(11, 11, 11);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:anthropic-sans, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"><rect x="40" y="40" width="180" height="64" rx="8" stroke-width="0.5" style="fill:rgb(241, 239, 232);stroke:rgb(95, 94, 90);color:rgb(11, 11, 11);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:anthropic-sans, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/><text x="130" y="62" text-anchor="middle" dominant-baseline="central" style="fill:rgb(68, 68, 65);stroke:none;color:rgb(11, 11, 11);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:anthropic-sans, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:14px;font-weight:500;text-anchor:middle;dominant-baseline:central">I  Agentive</text><text x="130" y="84" text-anchor="middle" dominant-baseline="central" style="fill:rgb(95, 94, 90);stroke:none;color:rgb(11, 11, 11);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:anthropic-sans, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:central">Verbatim words, context</text></g>
 <g style="fill:rgb(0, 0, 0);stroke:none;color:rgb(11, 11, 11);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:anthropic-sans, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"><rect x="250" y="40" width="180" height="64" rx="8" stroke-width="0.5" style="fill:rgb(238, 237, 254);stroke:rgb(83, 74, 183);color:rgb(11, 11, 11);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:anthropic-sans, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/><text x="340" y="62" text-anchor="middle" dominant-baseline="central" style="fill:rgb(60, 52, 137);stroke:none;color:rgb(11, 11, 11);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:anthropic-sans, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:14px;font-weight:500;text-anchor:middle;dominant-baseline:central">II  Objective</text><text x="340" y="84" text-anchor="middle" dominant-baseline="central" style="fill:rgb(83, 74, 183);stroke:none;color:rgb(11, 11, 11);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:anthropic-sans, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:central">System 1: context cache</text></g>
@@ -143,7 +225,7 @@ Because the C-F# tritone is symmetrical and can also function as C-Gb, this exac
 <line x1="130" y1="200" x2="130" y2="106" stroke-dasharray="4 4" marker-end="url(#arrow)" style="fill:none;stroke:rgb(137, 135, 129);color:rgb(11, 11, 11);stroke-width:1.5px;stroke-dasharray:4px, 4px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:anthropic-sans, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
 <g style="fill:rgb(252, 252, 251);stroke:color(srgb 0.0431373 0.0431373 0.0431373 / 0.2);color:rgb(11, 11, 11);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:anthropic-sans, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"><rect x="40" y="304" width="600" height="52" rx="8" stroke-width="0.5" style="fill:rgb(252, 252, 251);stroke:color(srgb 0.0431373 0.0431373 0.0431373 / 0.2);color:rgb(11, 11, 11);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:anthropic-sans, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/><text x="340" y="322" text-anchor="middle" dominant-baseline="central" style="fill:rgb(11, 11, 11);stroke:color(srgb 0.0431373 0.0431373 0.0431373 / 0.2);color:rgb(11, 11, 11);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:anthropic-sans, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:14px;font-weight:500;text-anchor:middle;dominant-baseline:central">Hard rule layer</text><text x="340" y="342" text-anchor="middle" dominant-baseline="central" style="fill:rgb(82, 81, 78);stroke:color(srgb 0.0431373 0.0431373 0.0431373 / 0.2);color:rgb(11, 11, 11);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:anthropic-sans, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:central">Contraindications and dose ceilings veto any correction</text></g>
 </svg>
-</figure>
+</div></figure>
 <p>The figure above is the loop. Below are the table and the ASCII version.</p>
 <p><strong>Pentadic table</strong></p>
 <table>
@@ -224,6 +306,10 @@ Because the C-F# tritone is symmetrical and can also function as C-Gb, this exac
 </code></pre>
 <p><strong>One-line compression:</strong> the cache should attend to the patient's own words in context rather than name them, and learn from where it failed. Clinicians stay the source of truth, and the loop closes only when the correction changes what the system asks next.</p>
 <hr />
+</section>
+
+<section id="epilogue">
+<h2 class="sec">Epilogue</h2>
 <p>You've not looped in Scale AI &amp; Alexandr Wang as strategic insights for Ukubona? The personalized agent space is getting crowded out by Muse.ai; so I've to reposition Ukubona LLC</p>
 <hr />
 <p>You're right. I treated Wang as a historical case of labeling getting cheap, but he now runs the competitor. That changes the positioning question.</p>
@@ -275,9 +361,32 @@ Because the C-F# tritone is symmetrical and can also function as C-Gb, this exac
 </tbody>
 </table>
 <p>The short version for a positioning line: Muse is the personal agent, and Ukubona is the layer that makes any agent accountable to a clinician and to the patient's own context.</p>
-<hr>
-<h2>Reference</h2>
-<p><a href="https://ukubona-llc.github.io/trial-and-error/">https://ukubona-llc.github.io/trial-and-error/</a></p>
+</section>
+
+<section id="references">
+<h2 class="sec">References</h2>
+<ol class="refs">
+<li id="ref-1"><a class="rtitle" href="https://ukubona-llc.github.io/tree/" target="_blank" rel="noopener">Tree</a><a class="rurl" href="https://ukubona-llc.github.io/tree/" target="_blank" rel="noopener">https://ukubona-llc.github.io/tree/</a></li>
+<li id="ref-2"><a class="rtitle" href="https://ukubona-llc.github.io/dendron/" target="_blank" rel="noopener">Dendron</a><a class="rurl" href="https://ukubona-llc.github.io/dendron/" target="_blank" rel="noopener">https://ukubona-llc.github.io/dendron/</a></li>
+<li id="ref-3"><a class="rtitle" href="https://ukubona-llc.github.io/foxp2/" target="_blank" rel="noopener">Foxp2</a><a class="rurl" href="https://ukubona-llc.github.io/foxp2/" target="_blank" rel="noopener">https://ukubona-llc.github.io/foxp2/</a></li>
+<li id="ref-4"><a class="rtitle" href="https://j-digital-twin.onrender.com/" target="_blank" rel="noopener">School</a><a class="rurl" href="https://j-digital-twin.onrender.com/" target="_blank" rel="noopener">https://j-digital-twin.onrender.com/</a></li>
+<li id="ref-5"><a class="rtitle" href="https://ukubona-llc.github.io/" target="_blank" rel="noopener">Ukubona</a><a class="rurl" href="https://ukubona-llc.github.io/" target="_blank" rel="noopener">https://ukubona-llc.github.io/</a></li>
+<li id="ref-6"><a class="rtitle" href="https://ukubona-llc.github.io/trial-and-error/" target="_blank" rel="noopener">trial-and-error</a><span class="rnote">Source of the Preface</span><a class="rurl" href="https://ukubona-llc.github.io/trial-and-error/" target="_blank" rel="noopener">https://ukubona-llc.github.io/trial-and-error/</a></li>
+<li id="ref-7"><a class="rtitle" href="https://ukb-dt.github.io/nairobi/" target="_blank" rel="noopener">Mission</a><span class="rnote">Linked in the Preface</span><a class="rurl" href="https://ukb-dt.github.io/nairobi/" target="_blank" rel="noopener">https://ukb-dt.github.io/nairobi/</a></li>
+<li id="ref-8"><a class="rtitle" href="https://ukubona-llc.github.io/trial/" target="_blank" rel="noopener">Practice</a><span class="rnote">Linked in the Preface</span><a class="rurl" href="https://ukubona-llc.github.io/trial/" target="_blank" rel="noopener">https://ukubona-llc.github.io/trial/</a></li>
+</ol>
+</section>
 </main>
+<script>
+(function(){
+var root=document.documentElement,pop=document.getElementById('pop'),wf=document.getElementById('waffle'),th=document.getElementById('theme');
+th.addEventListener('click',function(){var n=root.getAttribute('data-theme')==='dark'?'light':'dark';root.setAttribute('data-theme',n);try{localStorage.setItem('theme',n)}catch(e){}});
+function close(){pop.classList.remove('open');wf.setAttribute('aria-expanded','false')}
+wf.addEventListener('click',function(e){e.stopPropagation();var o=pop.classList.toggle('open');wf.setAttribute('aria-expanded',o?'true':'false')});
+pop.addEventListener('click',function(e){if(e.target.closest('a'))close()});
+document.addEventListener('click',function(e){if(!pop.contains(e.target))close()});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){close();wf.focus()}});
+})();
+</script>
 </body>
 </html>
