@@ -57,6 +57,10 @@ figure svg{display:block;width:100%;height:auto}
 .rnote{grid-column:2;color:var(--muted);font-size:13px}
 .rurl{grid-column:2;color:var(--muted);font:12.5px ui-monospace,Menlo,Consolas,monospace;word-break:break-all;text-decoration:none}
 .rurl:hover{color:var(--link);text-decoration:underline}
+.gpt{border-left:3px solid var(--accent);padding:.2rem 0 .2rem 1rem;margin:1.5rem 0;scroll-margin-top:64px}
+.gtxt{white-space:pre-wrap}
+.gpt pre.gjson{margin:1rem 0}
+.attr{margin:1rem 0 0;color:var(--muted)}
 footer{max-width:760px;margin:0 auto;padding:0 1.25rem 3rem}
 </style>
 </head>
@@ -74,6 +78,7 @@ footer{max-width:760px;margin:0 auto;padding:0 1.25rem 3rem}
     <nav class="pop" id="pop" role="menu" aria-label="Sections">
 <a class="tile" href="#preface" role="menuitem"><span class="mono">Pf</span><span>Preface</span></a>
 <a class="tile" href="#session" role="menuitem"><span class="mono">Se</span><span>Session</span></a>
+<a class="tile" href="#schema" role="menuitem"><span class="mono">Gp</span><span>Schema</span></a>
 <a class="tile" href="#figure" role="menuitem"><span class="mono">Fg</span><span>Figure</span></a>
 <a class="tile" href="#epilogue" role="menuitem"><span class="mono">Ep</span><span>Epilogue</span></a>
 <a class="tile" href="#references" role="menuitem"><span class="mono">Rf</span><span>References</span></a>
@@ -209,6 +214,304 @@ Because the C-F# tritone is symmetrical and can also function as C-Gb, this exac
 <p>Since your workflow is prompt → LLM → code, I'd write these invariants as executable property tests before any logic exists. For example: shuffling the pain location must not change the vasospasm flag when the timing is fixed, and adding a risk factor must not lower the score. Then the AI writes code to satisfy the tests. The tests are the unambiguous specification you're describing, and they hold up when the model or the implementation changes underneath.</p>
 <p>Event sourcing also gives you your SAPATA line for free: patient state is the sum of timestamped events, so V → I′ is literally the next event appended to the log.</p>
 <hr />
+<div class="gpt" id="schema">
+<div class="gtxt">Yes. If II is context-dependent attention rather than a dictionary, then the storage format should preserve the raw token, its context, the candidate alignments, and the eventual collision/correction. I would resist making the cache a giant JSON object with a fixed schema for every clinical concept.
+
+I think you want event-native NDJSON, with a few distinct event types.
+
+1. I — raw experiential event
+
+The most important thing is: never destroy the patient’s original expression.</div>
+<pre class="gjson"><code>{
+  "type": "experience",
+  "t": "2026-09-24T02:13:00Z",
+  "subject": "patient",
+  "raw": "felt a spasm in my chest",
+  "language": "en",
+  "context": {
+    "state": "rest",
+    "time_of_day": "night",
+    "activity": "sleeping",
+    "duration": "2 min"
+  },
+  "provenance": "patient"
+}</code></pre>
+<div class="gtxt">The machine should be able to return to "felt a spasm in my chest" forever.
+
+That’s your I → II boundary.
+
+⸻
+
+2. II — contextual alignment
+
+Don’t write:
+
+"spasm": "musculoskeletal"
+
+Write something closer to:</div>
+<pre class="gjson"><code>{
+  "type": "alignment",
+  "input_ref": "evt_001",
+  "query": "spasm",
+  "context": {
+    "rest": true,
+    "night": true,
+    "exertion": false
+  },
+  "candidates": [
+    {"concept": "coronary_vasospasm", "weight": 0.41},
+    {"concept": "esophageal_spasm", "weight": 0.27},
+    {"concept": "musculoskeletal_spasm", "weight": 0.18},
+    {"concept": "other", "weight": 0.14}
+  ],
+  "engine": "cache_v17",
+  "provenance": "system1"
+}</code></pre>
+<div class="gtxt">This is the critical change.
+
+The cache doesn’t say:
+
+spasm = X
+
+It says:
+
+given this input under this context, these are the things this input can currently align with.
+
+That’s attention.
+
+And because the alignment is an event, you can later discover that cache_v17 was wrong without rewriting history.
+
+⸻
+
+3. III — Errative / classification event
+
+Now something interesting happens.
+
+The system’s alignment disagrees with what subsequently emerges.</div>
+<pre class="gjson"><code>{
+  "type": "error",
+  "input_ref": "evt_001",
+  "alignment_ref": "align_001",
+  "error": {
+    "kind": "context_mismatch",
+    "expected": "musculoskeletal",
+    "observed": "coronary_vasospasm"
+  },
+  "provenance": "clinician"
+}</code></pre>
+<div class="gtxt">But I would actually allow multiple kinds of error:
+
+miss
+false_positive
+wrong_context
+wrong_resolution
+abstention
+clinician_override
+patient_correction
+temporal_mismatch
+rule_conflict
+
+Because III isn’t merely “the answer was wrong.”
+
+It is:
+
+Where did the representational system fail to preserve what mattered?
+
+That’s much closer to your invariant idea.
+
+⸻
+
+4. IV — Multi-agent collision
+
+This is where I think your architecture becomes genuinely interesting.
+
+Don’t store the LLM’s answer as the answer.
+
+Store the collision.</div>
+<pre class="gjson"><code>{
+  "type": "collision",
+  "input_ref": "evt_001",
+  "participants": [
+    {
+      "agent": "system1",
+      "position": "musculoskeletal_spasm"
+    },
+    {
+      "agent": "patient",
+      "position": "felt_like_pressure"
+    },
+    {
+      "agent": "clinician",
+      "position": "consider_vasospasm"
+    },
+    {
+      "agent": "llm",
+      "position": "rest/night clustering raises vasospasm"
+    }
+  ],
+  "relation": "adversarial",
+  "question": "What feature best discriminates these interpretations?"
+}</code></pre>
+<div class="gtxt">And this is where your five relation types become useful:
+
+adversarial
+transactional
+cooperative
+regulatory
+symbiotic
+
+The LLM isn’t merely doing classification.
+
+It is observing collisions between differently situated interpreters.
+
+That’s much closer to your IV.
+
+⸻
+
+5. V — corrective event
+
+Then V shouldn’t merely say:
+
+"correct_label": "coronary_vasospasm"
+
+That’s still thinking like a classifier.
+
+Instead:</div>
+<pre class="gjson"><code>{
+  "type": "correction",
+  "collision_ref": "collision_001",
+  "objective": {
+    "previous": "identify symptom label",
+    "new": "preserve context-dependent discriminating features"
+  },
+  "update": {
+    "cache": "v18",
+    "change": "increase weight of temporal/trigger features before anatomical label"
+  },
+  "approved_by": "clinician",
+  "reversible": true
+}</code></pre>
+<div class="gtxt">That is V = realignment of objectives.
+
+The system doesn’t merely learn:
+
+“spasm → vasospasm.”
+
+It learns:
+
+“Don’t resolve this lexical token before attending to its context.”
+
+That’s a much more powerful correction.
+
+⸻
+
+And then I′
+
+The correction changes what the system does to the next experience.
+
+So the next patient who says:
+
+“I get spasms”
+
+doesn’t merely get a better dictionary.
+
+The system now knows to ask:
+
+When?
+At rest or exertion?
+How long?
+What were you doing?
+What does "spasm" mean to you?
+Where?
+What happens immediately before/after?
+
+And crucially, the questions themselves become events.
+
+So your actual NDJSON stream becomes:
+
+I  experience
+↓
+II alignment
+↓
+III error
+↓
+IV collision
+↓
+V correction
+↓
+I′ experience/question
+↓
+II′ alignment
+↓
+...
+
+That’s SAPATA in executable form:
+
+Stateₜ = Σ Eventᵢ
+
+⸻
+
+The minimal format I’d actually build
+
+I wouldn’t start with 40 schemas.
+
+I’d start with perhaps six primitives:
+
+experience
+context
+alignment
+error
+collision
+correction
+
+with universal metadata:</div>
+<pre class="gjson"><code>{
+  "id": "...",
+  "t": "...",
+  "type": "...",
+  "subject": "...",
+  "provenance": "...",
+  "refs": [],
+  "payload": {}
+}</code></pre>
+<div class="gtxt">Then the entire patient history is just an append-only stream:
+
+experience
+experience
+context
+alignment
+alignment
+error
+collision
+correction
+experience
+alignment
+...
+
+That gives you something quite different from an EHR.
+
+The EHR tends to ask:
+
+What is the patient’s diagnosis?
+
+Your system asks:
+
+What did the patient experience, how was it interpreted here, where did interpretation fail, what collided, and what changed afterward?
+
+And that is why attention is more than a metaphor here.
+
+The cache becomes a conditional repertoire of possible alignments, rather than a lookup table.
+
+Or, in your language:
+
+II does not name I. II attends to I.
+
+And then III is where the inadequacy of that attention becomes observable; IV is where competing attentions collide; V changes what the system attends to next.
+
+That feels much closer to the pentad you’ve been trying to get the index.mds to say.</div>
+<p class="attr">--GPT-5.6 Luna</p>
+</div>
+<hr>
 <figure id="figure"><div class="card">
 <svg width="100%" viewBox="0 0 680 390" role="img" style="" xmlns="http://www.w3.org/2000/svg" xmlns:c2pa="http://c2pa.org/manifest"><metadata><c2pa:manifest>AAAWkGp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAABZqanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46YzJwYTo1NGEyMDQ4NC1jZDRiLTQyMTctOGRkYS03MDEyZmMxMGEwNmMAAAADf2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAALxqdW1iAAAARGp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuaW5ncmVkaWVudC52MwAAAAAYYzJzaHCKiZAoUsRVheo1nMdQuVsAAABwY2JvcqNscmVsYXRpb25zaGlwaHBhcmVudE9maWRjOmZvcm1hdG1pbWFnZS9zdmcreG1samluc3RhbmNlSUR4LHhtcDppaWQ6OTA2OTVjNTQtNjE1MS00ODcwLWI0MjItNzExMjU1MWZjMGU0AAABzmp1bWIAAABBanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5hY3Rpb25zLnYyAAAAABhjMnNov9bnJFHD05OLpybWy9cN5QAAAYVjYm9yoWdhY3Rpb25zgqJmYWN0aW9ua2MycGEub3BlbmVkanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFgg+YazR5fCWL4fHVyKYtgZtJN7Pl+IESnIFs1RvxkDEJakZmFjdGlvbngdY29tLmFudGhyb3BpYy5jbGF1ZGUucHJvdmlkZWRtc29mdHdhcmVBZ2VudKFkbmFtZWZDbGF1ZGVqcGFyYW1ldGVyc6F4H2NvbS5hbnRocm9waWMub3JpZ2luLWNvbmZpZGVuY2VndW5rbm93bmtkZXNjcmlwdGlvbnhmQ2xhdWRlIHByb3ZpZGVkIHRoaXMgZmlsZSBhdCB0aGUgcmVxdWVzdCBvZiBhIHVzZXIgYW5kIG1heSBoYXZlIGNyZWF0ZWQgb3IgbW9kaWZpZWQgdGhlIGZpbGUgY29udGVudHMuAAAAxGp1bWIAAABAanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5oYXNoLmRhdGEAAAAAGGMyc2hV4YayY9JQPdIEw8Y7wq4EAAAAfGNib3KlamV4Y2x1c2lvbnOBomVzdGFydBieZmxlbmd0aBkeGGRuYW1lbmp1bWJmIG1hbmlmZXN0Y2FsZ2ZzaGEyNTZkaGFzaFggQxnPrXZGtVMupC3dwx5SvyaVMemYNiCmRCQaV1xAHi9jcGFkSQAAAAAAAAAAAAAAAmRqdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACNWNib3Kmamluc3RhbmNlSUR4LHhtcDppaWQ6MjllYTQxMDEtNDQ2Yy00M2YwLTlkYTgtNGQ1YmJlYTcyM2YydGNsYWltX2dlbmVyYXRvcl9pbmZvo2RuYW1lc0FudGhyb3BpYyBDbGF1ZGUuYWlndmVyc2lvbmUxLjAuMHdvcmcuY29udGVudGF1dGguYzJwYV9yc2YwLjkwLjBpc2lnbmF0dXJleE1zZWxmI2p1bWJmPS9jMnBhL3VybjpjMnBhOjU0YTIwNDg0LWNkNGItNDIxNy04ZGRhLTcwMTJmYzEwYTA2Yy9jMnBhLnNpZ25hdHVyZXJjcmVhdGVkX2Fzc2VydGlvbnOComN1cmx4KnNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuYWN0aW9ucy52MmRoYXNoWCB4fcIzKsUBsr/gfCxowr4Y1AGRCFcbZ2JmLlO6ZVXHQaJjdXJseClzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmhhc2guZGF0YWRoYXNoWCAtUPTPaMHEoJHjFLY3gZ6s9X0eFsGobTgb3zYDsRiQZ3NnYXRoZXJlZF9hc3NlcnRpb25zgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFgg+YazR5fCWL4fHVyKYtgZtJN7Pl+IESnIFs1RvxkDEJZjYWxnZnNoYTI1NgAAEDhqdW1iAAAAKGp1bWRjMmNzABEAEIAAAKoAOJtxA2MycGEuc2lnbmF0dXJlAAAAEAhjYm9y0oRZAhKiASYYIVkCCjCCAgYwggGNoAMCAQICFEDloAruwjnQvriD+gZCBT1nVRMAMAoGCCqGSM49BAMDMEkxFzAVBgNVBAoTDkFudGhyb3BpYywgUEJDMS4wLAYDVQQDEyVBbnRocm9waWMgQ29udGVudCBDcmVkZW50aWFscyBSb290IENBMB4XDTI2MDgwNzE4NDM1NloXDTI4MDgwNjE5NDM1NlowRDEXMBUGA1UEChMOQW50aHJvcGljLCBQQkMxKTAnBgNVBAMTIEFudGhyb3BpYyBDbGF1ZGUgQ29udGVudCBTaWduaW5nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEmHoKa8tQGAUU1TS9QqU5W0Tp2N3XsvlK7BfQt6YWKwEzd2R3/dzKPEUDdCjlLjp9fT+KFjRVnuZ9v0oXvTe3k6NYMFYwDgYDVR0PAQH/BAQDAgeAMBUGA1UdJQQOMAwGCisGAQQBg+heAgEwDAYDVR0TAQH/BAIwADAfBgNVHSMEGDAWgBTOUeIEgU5kWyP448TPmj6cwddcwjAKBggqhkjOPQQDAwNnADBkAjAxcx0UngF60stVjs5G4T2eiptsBk5mf9oCtfJPAUBl8qs/PEXa8+gk1/X5QJ2DVcYCMHBfXN31YapiSqYvlIWrDVDJKOvXMl+kkz37Wt0PBI8sw486Mq6JeOhT+lRR4b1HCaFjcGFkWQ2eAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA9lhAoypKRhvUC3CiewF9JxM/bswSk1lFAIDrroX0DneekHdNNDi/npWIJaUO+3PMWMwjDQyQcfgifDQHcdaXxRfzwQ==</c2pa:manifest></metadata><title style="fill:rgb(0, 0, 0);stroke:none;color:rgb(11, 11, 11);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:anthropic-sans, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">Pentadic loop for a clinical cache</title><desc style="fill:rgb(0, 0, 0);stroke:none;color:rgb(11, 11, 11);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:anthropic-sans, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">Five stages I to V from raw experience to corrective realignment, returning to I prime, with a hard rule layer beneath.</desc><defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
 <g style="fill:rgb(0, 0, 0);stroke:none;color:rgb(11, 11, 11);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:anthropic-sans, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"><rect x="40" y="40" width="180" height="64" rx="8" stroke-width="0.5" style="fill:rgb(241, 239, 232);stroke:rgb(95, 94, 90);color:rgb(11, 11, 11);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:anthropic-sans, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/><text x="130" y="62" text-anchor="middle" dominant-baseline="central" style="fill:rgb(68, 68, 65);stroke:none;color:rgb(11, 11, 11);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:anthropic-sans, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:14px;font-weight:500;text-anchor:middle;dominant-baseline:central">I  Agentive</text><text x="130" y="84" text-anchor="middle" dominant-baseline="central" style="fill:rgb(95, 94, 90);stroke:none;color:rgb(11, 11, 11);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:anthropic-sans, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:central">Verbatim words, context</text></g>
