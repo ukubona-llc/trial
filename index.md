@@ -150,3 +150,92 @@ Writing for a machine forces you to make explicit everything an experienced clin
 Since your workflow is prompt → LLM → code, I'd write these invariants as executable property tests before any logic exists. For example: shuffling the pain location must not change the vasospasm flag when the timing is fixed, and adding a risk factor must not lower the score. Then the AI writes code to satisfy the tests. The tests are the unambiguous specification you're describing, and they hold up when the model or the implementation changes underneath.
 
 Event sourcing also gives you your SAPATA line for free: patient state is the sum of timestamped events, so V → I′ is literally the next event appended to the log.
+
+---
+
+*.svg inserted here
+
+The figure above is the loop. Below are the table and the ASCII version.
+
+**Pentadic table**
+
+| Stage | Role | What we established | Event type |
+|---|---|---|---|
+| I. Agentive | Raw experience, prelingual | The rest-only spasm before it has a name. Keep the patient's words verbatim, tagged with language and context. Location is the weakest feature and timing the strongest. | `experience` |
+| II. Objective (System 1) | Language, science, next-token prediction | Reflex, heuristic, cache and rules. It is context-dependent attention, not a dictionary: the key is context plus input, and the output is several weighted candidate alignments. | `alignment` |
+| III. Errative | Classification of failure | Misses, wrong-context readings, clinician overrides, abstentions and near-misses. The Prinzmetal miss lives here, and the silent errors matter most. | `error` |
+| IV. Interactive (System 2) | Multi-agent collision | Patient, clinician, guideline and LLM interpretations collide, and the relation may be adversarial, transactional, cooperative, regulatory or symbiotic. Store the collision and its resolution, not the LLM's answer. | `collision`, `resolution` |
+| V. Corrective | Realignment of objectives | Change what the system attends to, not just a label, in small versioned diffs with clinician sign-off. | `correction` |
+| I′ | Altered substrate | The next patient is asked different questions, so the return isn't a repeat: D9/C → G/B, not G. | new `experience` |
+
+The session's other threads map onto the same five stages:
+
+- **Invariants:** the tritone is fixed while names change, and rest-versus-exertion timing survives translation between idioms.
+- **Learning rate:** small steps, such as a trial of a calcium channel blocker, or a voice moving by a half step.
+- **Safety:** soft attention for inference and a hard veto layer for contraindications.
+
+**ASCII diagram**
+
+```
+ I  Agentive        raw words, verbatim, in context  ("spasm", at rest, 2am)
+      │  query
+      ▼
+ II Objective       System 1: cache keyed on context + input
+      │  attends → weighted candidates, none forced early
+      ▼
+ III Errative       miss · wrong_context · override · abstain
+      │  disagreement is the wake-up trigger
+      ▼
+ IV Interactive     System 2: patient ⇄ clinician ⇄ guideline ⇄ LLM
+      │  adversarial / transactional / cooperative / regulatory / symbiotic
+      ▼
+ V  Corrective      objective realigned → cache@commit, reversible
+      │
+      ▼
+ I′ Agentive        next question changes ──┐
+      ▲                                     │
+      └─────────────── State_t = Σ Event_i ─┘
+
+ ═══ hard rule layer: veto over every correction ═══
+```
+
+**One-line compression:** the cache should attend to the patient's own words in context rather than name them, and learn from where it failed. Clinicians stay the source of truth, and the loop closes only when the correction changes what the system asks next.
+
+---
+
+You've not looped in Scale AI & Alexandr Wang as strategic insights for Ukubona? The personalized agent space is getting crowded out by Muse.ai; so I've to reposition Ukubona LLC
+
+---
+
+You're right. I treated Wang as a historical case of labeling getting cheap, but he now runs the competitor. That changes the positioning question.
+
+**What the search shows**
+
+- **Wang's arc.** He built Scale AI on human labeling and evaluation. Meta then spent more than $14 billion to bring him and a group of Scale engineers in-house. He now leads Meta's Superintelligence Labs as chief AI officer.
+- **Muse is a consumer agent.** It lets users hand off shopping, travel booking and form-filling, and it overtook ChatGPT as the top free app in the US and Canada. Wang says commerce, including a cut of agent-driven purchases, is a likely business model.
+- **Health is a named front.** Meta trained Muse Spark's medical capabilities on a clinical dataset built with more than 1,000 physicians, and it leads on HealthBench Hard. Wang has also described using it on his own health data.
+- **Privacy is its soft spot.** Axios noted that Meta's privacy policy sets few limits on how data shared with its AI can be used. That's about the April launch, so check whether the agent app has changed it.
+
+**Where I'd position Ukubona**
+
+Don't compete on the agent. Muse has the model, the distribution and the capital, and you can't out-run it on breadth. Compete on the layer Scale industrialized for the labs, the label store, but for a single patient's context instead of for a foundation model.
+
+1. **The clinician-validated correction log is the asset.** Muse's medical training came from a large but generic physician dataset. Your III and V events (overrides, wrong-context errors, abstentions, corrections) are context-specific: how "spasm" is used in a given community, which idioms map to which conditions, where the cache failed. A generic model can't get that from a general corpus.
+2. **Be model-agnostic.** Your roundtable archive already routes one prompt through several models. Position the NDJSON log as the system of record that Muse, Claude or any other System 2 can read from and be corrected against. That makes Muse a possible supplier rather than a rival.
+3. **Own the trust axis.** Patient-owned, append-only, provenance-tagged data with no database and clinician sign-off on every cache change is the opposite of a consumer feed with a commerce model. In a clinical setting that's a selling point.
+4. **Take the context where general models are thinnest.** Lexicon and idiom variation is your wedge, and Kampala and East Africa are a real starting point. Frontier training data leans toward a Western clinical register, and I'd expect that to show most in the community-specific mappings you described. Test that with a small set of cases before you claim it.
+
+**Two cautions**
+
+- Drop the claim from your earlier notes that Muse defaults to "epistemic amnesia." I can't verify it, and the positioning works without it: *"as trajectory generation gets cheap, measuring trajectory-induced state change gets more valuable."*
+- Muse's health performance is a benchmark result, not evidence about clinical deployment. Its personal-agent app is also very new, only about two weeks old. The safest read is that Meta is moving toward your space, but a clinician-in-the-loop, regulated decision-support product is a different build from a consumer agent.
+
+**Your pentad against Wang's**
+
+| Edge | Wang / Scale / Muse | Ukubona |
+|---|---|---|
+| II → III | Labels and evals at industrial scale | Context-specific corrections per patient and community |
+| IV | Sub-agents inside one model | Real collisions among patient, clinician, guideline and model |
+| V → I′ | Model releases, batch updates | Small versioned cache updates that change the next question |
+
+The short version for a positioning line: Muse is the personal agent, and Ukubona is the layer that makes any agent accountable to a clinician and to the patient's own context.
