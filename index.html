@@ -16,7 +16,7 @@ document.documentElement.setAttribute('data-theme',t)})();
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.7 Georgia,"Times New Roman",serif;transition:background .2s,color .2s}
-header{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:.6rem 1.25rem;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+header{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:.6rem max(1.25rem,calc((100% - 760px)/2 + 1.25rem));background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
 .brand{display:flex;align-items:center;gap:.6rem;color:var(--accent);text-decoration:none}
 .brand span{color:var(--fg);font-size:15px;font-weight:500;letter-spacing:.02em}
 .logo{display:block;animation:spin 24s linear infinite}
@@ -28,7 +28,7 @@ header{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-
 .ibtn:focus-visible,.tile:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .waffle{display:grid;grid-template-columns:repeat(3,4px);gap:3px}
 .waffle i{width:4px;height:4px;border-radius:50%;background:currentColor;display:block}
-.pop{position:absolute;right:0;top:calc(100% + 8px);width:264px;padding:.75rem;background:var(--pop);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);display:none;grid-template-columns:repeat(3,1fr);gap:.4rem}
+.pop{position:absolute;right:0;top:calc(100% + 8px);width:264px;max-width:calc(100vw - 2.5rem);padding:.75rem;background:var(--pop);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);display:none;grid-template-columns:repeat(3,1fr);gap:.4rem}
 .pop.open{display:grid}
 .tile{display:flex;flex-direction:column;align-items:center;gap:.35rem;padding:.6rem .2rem;border-radius:8px;color:var(--fg);text-decoration:none;font-size:12.5px}
 .tile:hover{background:var(--soft)}
